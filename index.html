@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Python Projects Hub</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header class="navbar">
+        <div class="logo">🐍 PythonProjectsHub</div>
+        <nav>
+            <input type="text" id="search-bar" placeholder="Search Python Projects..." class="search-bar">
+            <a href="/admin.html" style="color: #10b981; margin-left: 20px; text-decoration: none; font-weight: bold;">➕ Add Project</a>
+        </nav>
+    </header>
+
+    <div class="main-container">
+        
+        <aside class="sidebar-left">
+            <h3>📜 Project Tutorial List</h3>
+            <ul id="project-list">
+                <p>Loading tutorials...</p>
+            </ul>
+        </aside>
+
+        <main class="content-center">
+            <article id="project-container">
+                <h2>Select a project from the sidebar to start learning!</h2>
+            </article>
+        </main>
+
+        <aside class="sidebar-right">
+            <div class="card download-card">
+                <h3>Project Files</h3>
+                <button class="btn-download">📥 Download Source Code (.zip)</button>
+            </div>
+            <div class="card video-card">
+                <h3>Video Tutorial</h3>
+                <div class="video-placeholder">🎬 Watch Walkthrough Guide</div>
+            </div>
+        </aside>
+
+    </div>
+
+    <script>
+       
+        let allProjects = [];
+
+        async function initPlatform() {
+            try {
+                // 1. Fetch all rows from PostgreSQL
+                const response = await fetch('/api/projects');
+                allProjects = await response.json();
+                
+                if(allProjects.length > 0) {
+                    // 2. Build the sidebar menu dynamically
+                    const listContainer = document.getElementById('project-list');
+                    listContainer.innerHTML = ''; // clear loading text
+                    
+                    allProjects.forEach((proj, index) => {
+                        listContainer.innerHTML += `
+                            <li><a href="#" onclick="displayProject(${index})">🔹 ${proj.title}</a></li>
+                        `;
+                    });
+
+                    // 3. Automatically display the first project on page load
+                    displayProject(0);
+                } else {
+                    document.getElementById('project-list').innerHTML = '<p>No projects found.</p>';
+                }
+            } catch (err) {
+                console.error("Error loading platform data:", err);
+                document.getElementById('project-list').innerHTML = '<p>Error loading data.</p>';
+            }
+        }
+
+        // Function to instantly switch the content when a sidebar link is clicked
+        function displayProject(index) {
+            const project = allProjects[index];
+            
+            document.getElementById('project-container').innerHTML = `
+                <span class="badge">${project.category}</span>
+                <h1>${project.title}</h1>
+                <p class="meta">Difficulty: <strong>${project.difficulty}</strong></p>
+                <hr>
+                <p style="line-height: 1.6; font-size: 16px;">${project.summary}</p>
+                <h2>Source Code</h2>
+                <div class="code-window">
+                    <div class="code-header">
+                        <span>main.py</span>
+                        <button class="copy-btn">Copy</button>
+                    </div>
+                    <pre><code>${project.python_code}</code></pre>
+                </div>
+            `;
+        }
+
+        // 🔍 REAL-TIME SEARCH FILTERING LOGIC
+        document.getElementById('search-bar').addEventListener('input', function (e) {
+            const searchTerm = e.target.value.toLowerCase();
+            const listContainer = document.getElementById('project-list');
+            
+            listContainer.innerHTML = ''; // Clear out current items
+            
+            allProjects.forEach((proj, index) => {
+                if (proj.title.toLowerCase().includes(searchTerm)) {
+                    listContainer.innerHTML += `
+                        <li><a href="#" onclick="displayProject(${index})">🔹 ${proj.title}</a></li>
+                    `;
+                }
+            });
+            
+            if (listContainer.innerHTML === '') {
+                listContainer.innerHTML = '<p style="color: #64748b; padding-left: 10px;">No matching projects found.</p>';
+            }
+        });
+
+        // ✂️ COPY BUTTON LOGIC
+        document.addEventListener('click', function (e) {
+            if (e.target && e.target.classList.contains('copy-btn')) {
+                const codeText = e.target.closest('.code-window').querySelector('code').innerText;
+                navigator.clipboard.writeText(codeText).then(() => {
+                    e.target.innerText = 'Copied! ✅';
+                    setTimeout(() => { e.target.innerText = 'Copy'; }, 2000);
+                });
+            }
+        });
+
+        // Boot up the platform layout automatically
+        initPlatform();
+    
+    </script>
+
+</body>
+</html>
