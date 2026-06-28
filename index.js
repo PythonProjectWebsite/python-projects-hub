@@ -1,11 +1,16 @@
-const express = require('express');
-const { Pool } = require('pg');
-require('dotenv').config();
-
 const app = express();
 const port = process.env.PORT || 3000;
-// Middleware to parse JSON data coming from forms
+
+// 1. Parse JSON data
 app.use(express.json());
+
+// 2. Serve static files (like style.css) straight from your main folder
+app.use(express.static(__dirname));
+
+// 3. Force the main link to send your HTML file directly
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
 const pool = new Pool({
     user: process.env.DB_USER,
