@@ -15,7 +15,10 @@ const pool = new Pool({
     port: process.env.DB_PORT || 5432,
 });
 
-app.use(express.static(__dirname));
+// This tells Vercel to send your index.html file whenever someone visits the homepage
+app.get('/', (req, res) => {
+    res.sendFile(__dirname + '/index.html');
+});
 
 // 1. GET route: Fetches all projects to display on the homepage
 app.get('/api/projects', async (req, res) => {
